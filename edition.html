@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выпуск — MODUM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="container">
+                <div class="header__inner">
+                    <a href="index.html" class="logo">MODUM</a>
+                    <nav class="nav">
+                        <a href="index.html" class="nav__link">Главная</a>
+                        <a href="editions.html" class="nav__link">Выпуски</a>
+                        <a href="profile.html" class="nav__link">Профиль</a>
+                        <a href="admin.html" class="nav__link" id="adminLink" style="display: none;">Админка</a>
+                    </nav>
+                    <div class="user-info" id="userInfo"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <div class="edition-page" id="editionPage">
+                    <div class="loading-skeleton">
+                        <div class="skeleton-cover"></div>
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://vk.com/modumava" target="_blank">MODUM. Журнал игры Аватария</a>
+                    <a href="https://vk.com/avataryaclub" target="_blank">Официальное сообщество Аватарии</a>
+                </div>
+                <div class="footer__copyright">© 2026 MODUM</div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/google-api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateHeader();
+            if (!isAuthenticated()) window.location.href = 'index.html';
+            const urlParams = new URLSearchParams(window.location.search);
+            const editionId = urlParams.get('id');
+            if (!editionId) window.location.href = 'editions.html';
+            await loadEdition(editionId);
+        });
+
+        async function loadEdition(editionId) {
+            showLoading();
+            try {
+                const editionRes = await api.getEdition(editionId);
+                if (!editionRes.success) {
+                    document.getElementById('editionPage').innerHTML = '<h2 style="text-align:center; margin-top:50px;">Выпуск не найден</h2>';
+                    return;
+                }
+                const edition = editionRes.edition;
+                const user = getCurrentUser();
+                const actionsRes = await api.getUserActions(user.id, 'approved');
+                const actions = actionsRes.success ? actionsRes.actions : [];
+                const editionActions = actions.filter(a => a.editionId == editionId);
+
+                const hasRead = editionActions.some(a => a.type === 'read');
+                const hasLike = editionActions.some(a => a.type === 'like');
+                const hasComment = editionActions.some(a => a.type === 'comment');
+                const hasInteractive = editionActions.some(a => a.type === 'interactive');
+
+                const totalPoints = editionActions.reduce((s, a) => s + a.points, 0);
+                const isActive = edition.status === 'active';
+
+                const coverHtml = edition.cover 
+                    ? `<div class="edition-cover-large" style="background-image: url('${edition.cover}');"></div>`
+                    : `<div class="edition-cover-large default">MODUM</div>`;
+
+                const html = `
+                    <div class="edition-hero">
+                        ${coverHtml}
+                        <div class="edition-meta">
+                            <span><i class="far fa-calendar"></i> ${formatDate(edition.date)}</span>
+                            <span><i class="fas ${isActive ? 'fa-circle' : 'fa-clock'}"></i> ${isActive ? 'Активен' : 'Завершён'}</span>
+                        </div>
+                        <h1 class="edition-title">${edition.title}</h1>
+                        <p class="edition-description">${edition.description}</p>
+                        <div class="edition-links">
+                            <a href="${edition.readLink}" class="edition-link" target="_blank"><i class="fas fa-book-open"></i> Читать</a>
+                            <a href="${edition.vkPost}" class="edition-link" target="_blank"><i class="fab fa-vk"></i> Открыть в VK</a>
+                        </div>
+                    </div>
+                    <div class="actions-section">
+                        <h2 class="section-title">Получите баллы</h2>
+                        <div class="actions-grid">
+                            <div class="action-card">
+                                <div class="action-card__icon">📖</div>
+                                <h3 class="action-card__title">Прочтение</h3>
+                                <p class="action-card__points">+1 балл</p>
+                                <button class="action-btn ${hasRead ? 'completed' : ''}" onclick="doAction('read')" ${!isActive || hasRead ? 'disabled' : ''}>${hasRead ? '✓ Выполнено' : 'Отметить прочитанным'}</button>
+                            </div>
+                            <div class="action-card">
+                                <div class="action-card__icon">👍</div>
+                                <h3 class="action-card__title">Лайк</h3>
+                                <p class="action-card__points">+1 балл</p>
+                                <button class="action-btn ${hasLike ? 'completed' : ''}" onclick="doAction('like')" ${!isActive || hasLike ? 'disabled' : ''}>${hasLike ? '✓ Выполнено' : 'Поставить лайк'}</button>
+                            </div>
+                            <div class="action-card">
+                                <div class="action-card__icon">💬</div>
+                                <h3 class="action-card__title">Комментарий</h3>
+                                <p class="action-card__points">+1 балл</p>
+                                <button class="action-btn ${hasComment ? 'completed' : ''}" onclick="doAction('comment')" ${!isActive || hasComment ? 'disabled' : ''}>${hasComment ? '✓ Выполнено' : 'Написать комментарий'}</button>
+                            </div>
+                            <div class="action-card">
+                                <div class="action-card__icon">🎮</div>
+                                <h3 class="action-card__title">Интерактив</h3>
+                                <p class="action-card__points">+2 балла</p>
+                                <button class="action-btn ${hasInteractive ? 'completed' : ''}" onclick="doAction('interactive')" ${!isActive || hasInteractive ? 'disabled' : ''}>${hasInteractive ? '✓ Выполнено' : 'Участвовать'}</button>
+                            </div>
+                        </div>
+                        <div class="total-points">Получено: <span class="highlight">${totalPoints} / ${CONFIG.points.maxPerEdition}</span></div>
+                    </div>
+                    ${edition.interactive && edition.interactive.title ? `
+                    <div class="interactive-section">
+                        <div class="interactive-header">
+                            <h3 class="interactive-title">${edition.interactive.title}</h3>
+                            <span class="interactive-points">+${edition.interactive.points} балла</span>
+                        </div>
+                        <p class="interactive-description">${edition.interactive.description}</p>
+                        <div class="qr-container">
+                            <div class="qr-placeholder"><i class="fas fa-qrcode"></i><p>QR-код</p></div>
+                            <div class="qr-info">
+                                <ol><li>Отсканируйте QR-код</li><li>Выполните задание</li><li>Дождитесь проверки</li></ol>
+                                <button class="qr-btn" onclick="window.open('${edition.interactive.qrCode || '#'}', '_blank')">Открыть форму</button>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+                document.getElementById('editionPage').innerHTML = html;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('editionPage').innerHTML = '<h2 style="text-align:center; margin-top:50px;">Ошибка загрузки</h2>';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function doAction(type) {
+            const user = getCurrentUser();
+            const editionId = new URLSearchParams(window.location.search).get('id');
+            const res = await api.addAction(user.id, editionId, type);
+            if (res.success) {
+                if (type === 'read') await api.markAsRead(user.id, editionId);
+                showNotification('Действие зарегистрировано, ожидает проверки');
+                await loadEdition(editionId);
+            } else {
+                showNotification('Ошибка', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

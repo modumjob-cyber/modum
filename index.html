@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MODUM — главная</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="container">
+                <div class="header__inner">
+                    <a href="index.html" class="logo">MODUM</a>
+                    <nav class="nav">
+                        <a href="index.html" class="nav__link active">Главная</a>
+                        <a href="editions.html" class="nav__link">Выпуски</a>
+                        <a href="profile.html" class="nav__link">Профиль</a>
+                        <a href="about.html" class="nav__link">О системе</a>
+                        <a href="admin.html" class="nav__link" id="adminLink" style="display: none;">Админка</a>
+                    </nav>
+                    <div class="user-info" id="userInfo"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <!-- Блок авторизации -->
+                <section class="auth-section" id="authSection">
+                    <div class="auth-card">
+                        <h1 class="auth-card__title">Добро пожаловать в MODUM</h1>
+                        <p class="auth-card__subtitle">Войдите или зарегистрируйтесь</p>
+                        
+                        <div class="social-selector">
+                            <button class="social-btn vk-btn active" id="selectVk"><i class="fab fa-vk"></i> VK</button>
+                            <button class="social-btn ok-btn" id="selectOk"><i class="fab fa-odnoklassniki"></i> OK</button>
+                        </div>
+                        
+                        <form class="auth-form" id="authForm">
+                            <input type="hidden" id="socialType" value="vk">
+                            <div class="form-group">
+                                <label class="form-label">Логин (ID)</label>
+                                <input type="text" class="form-input" id="login" placeholder="например: ivan123" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Пароль</label>
+                                <input type="password" class="form-input" id="password" placeholder="••••••••" required>
+                                <span class="password-hint" data-tooltip="Пароль можно получить в группе VK">❓</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">ID социальной сети</label>
+                                <input type="text" class="form-input" id="socialId" placeholder="например: 12345678 или durov" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ссылка на профиль</label>
+                                <input type="url" class="form-input" id="profileLink" placeholder="https://vk.com/durov" required>
+                            </div>
+                            <button type="submit" class="auth-btn">Войти / Зарегистрироваться</button>
+                        </form>
+                        
+                        <div class="auth-links">
+                            <a href="#" class="forgot-password">Забыли пароль?</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Свежие выпуски (для авторизованных) -->
+                <section class="featured-section" id="featuredSection" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">Свежие выпуски</h2>
+                        <a href="editions.html" class="section-link">Все выпуски →</a>
+                    </div>
+                    <div class="editions-grid" id="latestEditions">
+                        <!-- Скелетоны будут показаны через JS -->
+                    </div>
+                </section>
+
+                <!-- Рейтинг (для авторизованных) -->
+                <section class="rating-section" id="ratingSection" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">Рейтинг читателей</h2>
+                    </div>
+                    <div class="rating-list" id="homeRating"></div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://vk.com/modumava" class="footer__link" target="_blank">MODUM. Журнал игры Аватария</a>
+                    <a href="https://vk.com/avataryaclub" class="footer__link" target="_blank">Официальное сообщество Аватарии</a>
+                </div>
+                <div class="footer__copyright">© 2026 MODUM. Все права защищены.</div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/google-api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/profanity.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('selectVk').addEventListener('click', () => {
+                document.getElementById('socialType').value = 'vk';
+                document.getElementById('selectVk').classList.add('active');
+                document.getElementById('selectOk').classList.remove('active');
+            });
+            document.getElementById('selectOk').addEventListener('click', () => {
+                document.getElementById('socialType').value = 'ok';
+                document.getElementById('selectOk').classList.add('active');
+                document.getElementById('selectVk').classList.remove('active');
+            });
+            
+            if (typeof initAuth === 'function') initAuth();
+        });
+    </script>
+</body>
+</html>

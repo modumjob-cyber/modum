@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль — MODUM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="container">
+                <div class="header__inner">
+                    <a href="index.html" class="logo">MODUM</a>
+                    <nav class="nav">
+                        <a href="index.html" class="nav__link">Главная</a>
+                        <a href="editions.html" class="nav__link">Выпуски</a>
+                        <a href="profile.html" class="nav__link active">Профиль</a>
+                        <a href="admin.html" class="nav__link" id="adminLink" style="display: none;">Админка</a>
+                    </nav>
+                    <div class="user-info" id="userInfo"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container" id="profileContainer"></div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://vk.com/modumava" target="_blank">MODUM. Журнал игры Аватария</a>
+                    <a href="https://vk.com/avataryaclub" target="_blank">Официальное сообщество Аватарии</a>
+                </div>
+                <div class="footer__copyright">© 2026 MODUM</div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/google-api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/profanity.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>

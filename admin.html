@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления — MODUM</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        .admin-container { padding: 40px 0; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid var(--gray-200); padding-bottom: 10px; flex-wrap: wrap; }
+        .admin-tab { padding: 12px 25px; background: none; border: none; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 16px; cursor: pointer; color: var(--gray-600); transition: var(--transition); position: relative; }
+        .admin-tab:hover { color: var(--black); }
+        .admin-tab.active { color: var(--black); }
+        .admin-tab.active::after { content: ''; position: absolute; bottom: -11px; left: 0; width: 100%; height: 3px; background: var(--black); }
+        .admin-section { background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: var(--shadow); }
+        .section-title { font-size: 24px; font-weight: 700; margin-bottom: 25px; position: relative; padding-bottom: 10px; }
+        .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 50px; height: 3px; background: var(--black); }
+        .form-group { margin-bottom: 25px; }
+        .form-label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; color: var(--gray-700); }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 15px; transition: var(--transition); }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--black); }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-actions { display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+        .btn-primary { padding: 12px 25px; background: var(--black); color: white; border: none; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: var(--transition); }
+        .btn-primary:hover { background: var(--gray-800); }
+        .btn-secondary { padding: 12px 25px; background: var(--gray-200); color: var(--gray-800); border: none; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: var(--transition); }
+        .btn-secondary:hover { background: var(--gray-300); }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-warning:hover { background: #f57c00; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #d32f2f; }
+        .editions-list, .actions-list, .users-list { display: grid; gap: 15px; }
+        .edition-item, .action-item, .user-item { background: var(--gray-100); border-radius: 10px; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .edition-info, .user-info { flex: 1; min-width: 250px; }
+        .edition-title { font-weight: 700; margin-bottom: 5px; font-size: 16px; }
+        .edition-meta { font-size: 14px; color: var(--gray-600); display: flex; gap: 20px; flex-wrap: wrap; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .status-active { background: #28a745; color: white; }
+        .status-past { background: var(--gray-600); color: white; }
+        .edit-btn, .delete-btn, .balance-btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; margin-left: 8px; font-size: 13px; }
+        .edit-btn { background: var(--black); color: white; }
+        .delete-btn { background: #dc3545; color: white; }
+        .balance-btn { background: #ff9800; color: white; }
+        .action-type { padding: 4px 12px; background: var(--black); color: white; border-radius: 20px; font-size: 12px; display: inline-block; }
+        .approve-btn { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-right: 5px; }
+        .reject-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-input { flex: 1; min-width: 250px; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: 8px; font-family: 'Montserrat', sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .balance-edit { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .balance-input { width: 100px; padding: 8px; border: 1px solid var(--gray-300); border-radius: 5px; font-family: 'Montserrat', sans-serif; }
+        .user-balance-display { font-weight: 700; color: var(--black); background: white; padding: 4px 12px; border-radius: 20px; display: inline-block; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--gray-100); border-radius: 12px; padding: 20px; text-align: center; }
+        .stat-number { font-size: 32px; font-weight: 800; color: var(--black); }
+        .stat-label { font-size: 14px; color: var(--gray-600); }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="container">
+                <div class="header__inner">
+                    <a href="index.html" class="logo">MODUM</a>
+                    <nav class="nav">
+                        <a href="index.html" class="nav__link">Главная</a>
+                        <a href="editions.html" class="nav__link">Выпуски</a>
+                        <a href="profile.html" class="nav__link">Профиль</a>
+                        <a href="admin.html" class="nav__link active">Админка</a>
+                    </nav>
+                    <div class="user-info" id="userInfo"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <div class="admin-container">
+                    <div class="admin-header">
+                        <h1 class="section-title">Панель управления</h1>
+                        <div id="adminStats" class="stats-grid"></div>
+                    </div>
+                    
+                    <div class="admin-tabs">
+                        <button class="admin-tab active" onclick="switchTab('editions')">📰 Выпуски</button>
+                        <button class="admin-tab" onclick="switchTab('actions')">✓ Проверка действий</button>
+                        <button class="admin-tab" onclick="switchTab('users')">👥 Пользователи</button>
+                        <button class="admin-tab" onclick="switchTab('balance')">💰 Управление баллами</button>
+                    </div>
+                    
+                    <!-- Вкладка Выпуски -->
+                    <div class="tab-content active" id="tab-editions">
+                        <div class="admin-section">
+                            <h2 class="section-title">Добавить новый выпуск</h2>
+                            <form id="editionForm">
+                                <div class="form-group">
+                                    <label class="form-label">Название выпуска</label>
+                                    <input type="text" class="form-input" id="title" placeholder="Например: Зимний выпуск 2026" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Описание</label>
+                                    <textarea class="form-textarea" id="desc" placeholder="Краткое описание" required></textarea>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Дата выпуска</label>
+                                        <input type="date" class="form-input" id="date" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Статус</label>
+                                        <select class="form-select" id="status">
+                                            <option value="active">Активен</option>
+                                            <option value="past">Завершён</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ссылка на пост VK</label>
+                                    <input type="url" class="form-input" id="vkPost" placeholder="https://vk.com/wall-123456_1">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ссылка на чтение</label>
+                                    <input type="url" class="form-input" id="readLink" placeholder="https://example.com/read">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Обложка (URL)</label>
+                                    <input type="url" class="form-input" id="cover" placeholder="https://example.com/image.jpg">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Интерактив (название)</label>
+                                    <input type="text" class="form-input" id="interactiveTitle" placeholder="Например: Новогодний квиз">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Интерактив (описание)</label>
+                                    <textarea class="form-textarea" id="interactiveDesc" placeholder="Описание"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ссылка на интерактив</label>
+                                    <input type="url" class="form-input" id="interactiveLink" placeholder="https://example.com/form">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> Создать</button>
+                                    <button type="button" class="btn-secondary" onclick="clearForm()">Очистить</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="admin-section">
+                            <h2 class="section-title">Все выпуски</h2>
+                            <div class="editions-list" id="editionsList"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Вкладка Проверка действий -->
+                    <div class="tab-content" id="tab-actions">
+                        <div class="admin-section">
+                            <h2 class="section-title">Действия на проверке</h2>
+                            <div class="actions-list" id="pendingActions"></div>
+                        </div>
+                        <div class="admin-section">
+                            <h2 class="section-title">Последние подтверждённые</h2>
+                            <div class="actions-list" id="approvedActions"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Вкладка Пользователи -->
+                    <div class="tab-content" id="tab-users">
+                        <div class="admin-section">
+                            <h2 class="section-title">Поиск пользователей</h2>
+                            <div class="search-box">
+                                <input type="text" class="search-input" id="searchInput" placeholder="Введите логин, VK ID или OK ID">
+                                <button class="btn-primary" onclick="searchUsers()">Найти</button>
+                                <button class="btn-secondary" onclick="clearSearch()">Сброс</button>
+                            </div>
+                            <div class="users-list" id="searchResults"></div>
+                        </div>
+                        <div class="admin-section">
+                            <h2 class="section-title">Рейтинг пользователей (без админов)</h2>
+                            <div class="users-list" id="usersRating"></div>
+                        </div>
+                        <div class="admin-section">
+                            <h2 class="section-title">Пароли пользователей</h2>
+                            <p class="form-label">Администратор видит пароли для восстановления</p>
+                            <div class="users-list" id="usersPasswords"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Вкладка Управление баллами -->
+                    <div class="tab-content" id="tab-balance">
+                        <div class="admin-section">
+                            <h2 class="section-title">Редактирование баллов</h2>
+                            <p class="form-label">Выберите пользователя для изменения баланса</p>
+                            <div class="search-box">
+                                <input type="text" class="search-input" id="balanceSearch" placeholder="Поиск пользователя...">
+                                <button class="btn-primary" onclick="searchBalanceUsers()">Найти</button>
+                            </div>
+                            <div class="users-list" id="balanceUsersList"></div>
+                        </div>
+                        <div class="admin-section">
+                            <h2 class="section-title">Статистика баллов</h2>
+                            <div class="stats-grid" id="balanceStats">
+                                <div class="stat-card"><div class="stat-number" id="totalPoints">0</div><div class="stat-label">Всего баллов</div></div>
+                                <div class="stat-card"><div class="stat-number" id="avgPoints">0</div><div class="stat-label">Средний</div></div>
+                                <div class="stat-card"><div class="stat-number" id="maxPoints">0</div><div class="stat-label">Максимум</div></div>
+                                <div class="stat-card"><div class="stat-number" id="usersCount">0</div><div class="stat-label">Пользователей</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://vk.com/modumava" target="_blank">MODUM. Журнал игры Аватария</a>
+                    <a href="https://vk.com/avataryaclub" target="_blank">Официальное сообщество Аватарии</a>
+                </div>
+                <div class="footer__copyright">© 2026 MODUM</div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/google-api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/profanity.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

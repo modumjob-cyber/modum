@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выпуски — MODUM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .search-section { background: white; border-radius: 20px; padding: 30px; margin: 30px 0 40px; box-shadow: var(--shadow); }
+        .search-form { display: flex; gap: 15px; flex-wrap: wrap; }
+        .search-input { flex: 2; min-width: 250px; padding: 15px; border: 1px solid var(--gray-300); border-radius: 10px; font-family: 'Montserrat', sans-serif; font-size: 16px; }
+        .search-select { flex: 1; min-width: 150px; padding: 15px; border: 1px solid var(--gray-300); border-radius: 10px; font-family: 'Montserrat', sans-serif; font-size: 16px; background: white; }
+        .search-btn { padding: 15px 30px; background: var(--black); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .search-btn:hover { background: var(--gray-800); }
+        .year-filters { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .year-btn { padding: 8px 20px; background: none; border: 1px solid var(--gray-300); border-radius: 30px; cursor: pointer; font-size: 14px; transition: var(--transition); }
+        .year-btn:hover { background: var(--gray-100); }
+        .year-btn.active { background: var(--black); color: white; border-color: var(--black); }
+        .search-results-info { margin: 20px 0; font-size: 14px; color: var(--gray-600); }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="container">
+                <div class="header__inner">
+                    <a href="index.html" class="logo">MODUM</a>
+                    <nav class="nav">
+                        <a href="index.html" class="nav__link">Главная</a>
+                        <a href="editions.html" class="nav__link active">Выпуски</a>
+                        <a href="profile.html" class="nav__link">Профиль</a>
+                        <a href="admin.html" class="nav__link" id="adminLink" style="display: none;">Админка</a>
+                    </nav>
+                    <div class="user-info" id="userInfo"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <h1 class="section-title">Все выпуски</h1>
+
+                <div class="search-section">
+                    <h2 style="margin-bottom: 20px;">🔍 Поиск выпусков</h2>
+                    <div class="search-form">
+                        <input type="text" class="search-input" id="searchQuery" placeholder="Поиск по названию...">
+                        <select class="search-select" id="searchYear">
+                            <option value="all">Все годы</option>
+                        </select>
+                        <button class="search-btn" onclick="searchEditions()"><i class="fas fa-search"></i> Найти</button>
+                        <button class="search-btn" style="background: var(--gray-600);" onclick="resetSearch()"><i class="fas fa-times"></i> Сброс</button>
+                    </div>
+                    <div class="year-filters">
+                        <button class="year-btn active" onclick="filterByYear('all')">Все</button>
+                    </div>
+                    <div class="search-results-info" id="searchInfo"></div>
+                </div>
+
+                <section class="active-editions">
+                    <h2 class="section-title">Активные выпуски</h2>
+                    <div class="editions-grid" id="activeEditions">
+                        <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+                    </div>
+                </section>
+
+                <section class="past-editions">
+                    <h2 class="section-title">Прошлые выпуски</h2>
+                    <div class="editions-grid" id="pastEditions">
+                        <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://vk.com/modumava" target="_blank">MODUM. Журнал игры Аватария</a>
+                    <a href="https://vk.com/avataryaclub" target="_blank">Официальное сообщество Аватарии</a>
+                </div>
+                <div class="footer__copyright">© 2026 MODUM</div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/google-api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let allEditions = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateHeader();
+            if (!isAuthenticated()) window.location.href = 'index.html';
+            try {
+                const res = await api.getEditions('all');
+                if (res.success) allEditions = res.editions;
+                populateYearFilters();
+                await displayEditions(allEditions);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('activeEditions').innerHTML = '<p style="text-align:center; color:red;">Ошибка загрузки</p>';
+                document.getElementById('pastEditions').innerHTML = '<p style="text-align:center; color:red;">Ошибка загрузки</p>';
+            }
+        });
+
+        function populateYearFilters() {
+            const yearsSet = new Set();
+            allEditions.forEach(e => {
+                if (e.date) {
+                    const year = e.date.split('-')[0];
+                    if (year) yearsSet.add(year);
+                }
+            });
+            const years = Array.from(yearsSet).sort((a, b) => b - a);
+
+            const yearSelect = document.getElementById('searchYear');
+            yearSelect.innerHTML = '<option value="all">Все годы</option>';
+            years.forEach(y => {
+                const option = document.createElement('option');
+                option.value = y;
+                option.textContent = y;
+                yearSelect.appendChild(option);
+            });
+
+            const yearFiltersDiv = document.querySelector('.year-filters');
+            yearFiltersDiv.innerHTML = '<button class="year-btn active" onclick="filterByYear(\'all\')">Все</button>';
+            years.forEach(y => {
+                const btn = document.createElement('button');
+                btn.className = 'year-btn';
+                btn.setAttribute('onclick', `filterByYear('${y}')`);
+                btn.textContent = y;
+                yearFiltersDiv.appendChild(btn);
+            });
+        }
+
+        async function displayEditions(editions) {
+            const sorted = [...editions].sort((a,b) => new Date(b.date) - new Date(a.date));
+            const active = sorted.filter(e => e.status === 'active');
+            const past = sorted.filter(e => e.status === 'past');
+            const user = getCurrentUser();
+            document.getElementById('activeEditions').innerHTML = await renderEditions(active, user);
+            document.getElementById('pastEditions').innerHTML = await renderEditions(past, user);
+        }
+
+        async function renderEditions(editions, user) {
+            if (editions.length === 0) return '<p style="text-align:center;">Нет выпусков</p>';
+            let html = '';
+            for (let e of editions) {
+                let isRead = false;
+                if (user) {
+                    const readRes = await api.isRead(user.id, e.id);
+                    isRead = readRes.success ? readRes.read : false;
+                }
+                html += `
+                    <div class="edition-card ${isRead ? '' : 'unread'}" onclick="window.location.href='edition.html?id=${e.id}'">
+                        <div class="edition-card__cover ${e.cover ? '' : 'default'}" ${e.cover ? `style="background-image: url('${e.cover}');"` : ''}>
+                            ${e.cover ? '' : 'MODUM'}
+                        </div>
+                        <div class="edition-card__content">
+                            <div class="edition-card__date">${formatDate(e.date)}</div>
+                            <h3 class="edition-card__title">${e.title}</h3>
+                            <p class="edition-card__desc">${e.description}</p>
+                            <div class="edition-card__footer">
+                                <span class="edition-card__status ${e.status}">${e.status === 'active' ? 'Активен' : 'Завершён'}</span>
+                                <span class="edition-card__points">⭐ ${CONFIG.points.maxPerEdition}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            return html;
+        }
+
+        function searchEditions() {
+            const query = document.getElementById('searchQuery').value.toLowerCase().trim();
+            const year = document.getElementById('searchYear').value;
+            let filtered = allEditions;
+            if (year !== 'all') {
+                filtered = filtered.filter(e => e.date && e.date.startsWith(year));
+            }
+            if (query) {
+                filtered = filtered.filter(e => 
+                    (e.title && e.title.toLowerCase().includes(query)) || 
+                    (e.description && e.description.toLowerCase().includes(query))
+                );
+            }
+            displayEditions(filtered);
+        }
+
+        function filterByYear(year) {
+            document.getElementById('searchYear').value = year;
+            document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            searchEditions();
+        }
+
+        function resetSearch() {
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('searchYear').value = 'all';
+            document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.year-btn[onclick="filterByYear(\'all\')"]').classList.add('active');
+            displayEditions(allEditions);
+        }
+    </script>
+</body>
+</html>
