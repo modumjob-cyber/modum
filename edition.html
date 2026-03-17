@@ -65,6 +65,11 @@
             if (!editionId) window.location.href = 'editions.html';
             await loadEdition(editionId);
         });
+function pluralize(number, words) {
+    const cases = [2, 0, 1, 1, 1, 2];
+    const index = (number % 100 > 4 && number % 100 < 20) ? 2 : cases[Math.min(number % 10, 5)];
+    return words[index];
+}
 
         async function loadEdition(editionId) {
             showLoading();
@@ -134,7 +139,7 @@
                                 <button class="action-btn ${hasInteractive ? 'completed' : ''}" onclick="doAction('interactive')" ${!isActive || hasInteractive ? 'disabled' : ''}>${hasInteractive ? '✓ Выполнено' : 'Участвовать'}</button>
                             </div>
                         </div>
-                        <div class="total-points">Получено: <span class="highlight">${totalPoints} / ${CONFIG.points.maxPerEdition}</span></div>
+                       <div class="total-points">Получено: <span class="highlight">${totalPoints} / ${CONFIG.points.maxPerEdition}</span> ${pluralize(totalPoints, ['балл', 'балла', 'баллов'])}</div>
                     </div>
                     ${edition.interactive && edition.interactive.title ? `
                     <div class="interactive-section">

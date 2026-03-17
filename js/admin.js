@@ -24,6 +24,22 @@ function setupEventListeners() {
     document.getElementById('balanceSearchBtn')?.addEventListener('click', searchBalanceUsers);
 }
 
+// Функция для обновления текущего пользователя в шапке
+async function updateCurrentUserBalance() {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+    
+    // Получаем свежие данные из базы
+    const userRes = await api.getUser(currentUser.id);
+    if (userRes.success) {
+        const updatedUser = userRes.user;
+        // Обновляем localStorage
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        // Обновляем шапку
+        updateHeader();
+    }
+}
+
 window.switchTab = function(tab) {
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -196,10 +212,11 @@ function getActionType(type) {
     return types[type] || type;
 }
 
-async function approveAction(actionId) {
+window.approveAction = async function(actionId) {
     const res = await api.approveAction(actionId, true);
     if (res.success) {
         showNotification('✅ Подтверждено');
+        await updateCurrentUserBalance(); // ← ДОБАВИТЬ ЭТУ СТРОКУ
         await loadPendingActions();
         await loadUsersRating();
         await loadUsersPasswords();
@@ -209,7 +226,7 @@ async function approveAction(actionId) {
     } else {
         showNotification('❌ Ошибка', 'error');
     }
-}
+};
 
 async function rejectAction(actionId) {
     const res = await api.approveAction(actionId, false);
@@ -223,12 +240,18 @@ async function rejectAction(actionId) {
 
 async function loadUsersRating() {
     const rating = await api.getRating(100);
-    document.getElementById('usersRating').innerHTML = rating.map((u,i) => `
-        <div class="user-item">
-            <div><strong>${u.name}</strong><br><span style="font-size:13px;">${u.login} · ${u.vkId?'VK: '+u.vkId:'OK: '+u.okId}</span></div>
-            <div style="text-align:right;"><div style="font-weight:700;">#${i+1}</div><div>${u.titul} · ${u.balance} баллов</div></div>
-        </div>
-    `).join('');
+    document.getElementById('usersRating').innerHTML = rating.map((u,i) => {
+        const points = u.balance || 0;
+        return `
+            <div class="user-item">
+                <div><strong>${u.name}</strong><br><span style="font-size:13px;">${u.login} · ${u.vkId?'VK: '+u.vkId:'OK: '+u.okId}</span></div>
+                <div style="text-align:right;">
+                    <div style="font-weight:700;">#${i+1}</div>
+                    <div>${u.titul} · ${points} ${pluralize(points, ['балл', 'балла', 'баллов'])}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 async function loadUsersPasswords() {
@@ -297,6 +320,7 @@ async function addPoints(userId) {
     if (updateRes.success) {
         document.getElementById(`balance-${userId}`).textContent = newBalance;
         input.value = '';
+await updateCurrentUserBalance();
         showNotification(`✅ Добавлено ${points}`);
         await loadUsersRating();
         await loadBalanceStats();
@@ -315,6 +339,7 @@ async function setPoints(userId) {
     if (updateRes.success) {
         document.getElementById(`balance-${userId}`).textContent = points;
         input.value = '';
+await updateCurrentUserBalance();
         showNotification(`✅ Установлено ${points}`);
         await loadUsersRating();
         await loadBalanceStats();
@@ -327,6 +352,7 @@ async function resetPoints(userId) {
     const updateRes = await api.updateUser(userId, { balance: 0, titul: 'Читатель' });
     if (updateRes.success) {
         document.getElementById(`balance-${userId}`).textContent = '0';
+await updateCurrentUserBalance();
         showNotification('✅ Баланс сброшен');
         await loadUsersRating();
         await loadBalanceStats();

@@ -165,20 +165,23 @@ async function loadHomeRating() {
             container.innerHTML = '<p style="text-align:center;">Нет участников</p>';
             return;
         }
-        container.innerHTML = rating.map((u,i) => `
-            <div class="rating-item" style="padding:12px; border-bottom:1px solid var(--gray-200);">
-                <div style="display:flex; justify-content:space-between;">
-                    <div><span style="font-weight:700; margin-right:10px;">#${i+1}</span> ${u.name}</div>
-                    <div><span class="user-titul" style="background:var(--black);">${u.titul}</span> · ${u.balance} баллов</div>
+        container.innerHTML = rating.map((u,i) => {
+            const points = u.balance || 0;
+            const pointsText = points + ' ' + pluralize(points, ['балл', 'балла', 'баллов']);
+            return `
+                <div class="rating-item" style="padding:12px; border-bottom:1px solid var(--gray-200);">
+                    <div style="display:flex; justify-content:space-between;">
+                        <div><span style="font-weight:700; margin-right:10px;">#${i+1}</span> ${u.name}</div>
+                        <div><span class="user-titul" style="background:var(--black);">${u.titul}</span> · ${pointsText}</div>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     } catch (e) {
         console.error(e);
         container.innerHTML = '<p style="text-align:center;">Ошибка загрузки</p>';
     }
 }
-
 function logout() {
     localStorage.removeItem('currentUser');
     currentUser = null;

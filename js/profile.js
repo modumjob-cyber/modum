@@ -39,7 +39,7 @@ async function loadProfile() {
                     <span class="profile-join-date">С нами с ${formatDate(user.registrationDate)}</span>
                 </div>
                 <div class="profile-stats">
-                    <div class="stat-card"><div class="stat-value">${stats.totalPoints}</div><div class="stat-label">Всего баллов</div></div>
+                    <div class="stat-card"><div class="stat-value">${stats.totalPoints} ${pluralize(stats.totalPoints, ['балл', 'балла', 'баллов'])}</div><div class="stat-label">Всего баллов</div></div>
                     <div class="stat-card"><div class="stat-value">${stats.editionsCount}</div><div class="stat-label">Выпусков</div></div>
                     <div class="stat-card"><div class="stat-value">${stats.likes}</div><div class="stat-label">Лайков</div></div>
                     <div class="stat-card"><div class="stat-value">${stats.comments}</div><div class="stat-label">Комментариев</div></div>
@@ -113,7 +113,7 @@ async function displayPointsByEdition(actionsByEdition) {
                     <div class="history-title">${e.title}</div>
                     <div class="history-meta">
                         <span>${formatDate(e.date)}</span>
-                        <span class="history-points">+${points} баллов</span>
+                        <span class="history-points">+${points} ${pluralize(points, ['балл', 'балла', 'баллов'])}</span>
                     </div>
                 </div>
             </div>
